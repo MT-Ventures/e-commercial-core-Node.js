@@ -1,6 +1,7 @@
 import orderModel from "../models/order-model.js";
 import productModel from "../models/product-model.js";
-import { stripe } from "../index.js";
+import userModel from "../models/user-model.js";
+import Iyzipay from "iyzipay";
 
 class OrderController {
   // CREATE ORDERS
@@ -116,28 +117,151 @@ class OrderController {
   // ACCEPT PAYMENTS
   async acceptPayments(req, res) {
     try {
-      // get amount
-      const { totalAmount } = req.body;
-      // validation
-      if (!totalAmount) {
-        return res.status(404).send({
+      const { cardNumber, expireMonth, expireYear, cardHolderName, cvc } =
+        req.body;
+
+      const formatDate = (date) => {
+        return new Date(date).toISOString().replace("T", " ").slice(0, 19);
+      };
+
+      // Ensure all required payment fields are present
+      if (
+        !cardNumber ||
+        !expireMonth ||
+        !expireYear ||
+        !cardHolderName ||
+        !cvc
+      ) {
+        return res.status(400).send({
           success: false,
-          message: "Total Amount is require",
+          message: "All card details are required",
         });
       }
-      const { client_secret } = await stripe.paymentIntents.create({
-        amount: Number(totalAmount * 100),
-        currency: "usd",
+
+      // Fetch the logged-in user's details
+      const user = await userModel.findById(req.user._id);
+      if (!user) {
+        return res.status(404).send({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      // Fetch the order details
+      const orders = await orderModel.find({ user: req.user._id });
+      if (orders.length === 0) {
+        return res.status(404).send({
+          success: false,
+          message: "No orders found for this user",
+        });
+      }
+
+      // Combine all items into basketItems
+      const basketItems = orders.flatMap((order) =>
+        order.orderItems.map((item) => ({
+          id: item.product.toString(),
+          name: item.name,
+          category1: "Collectibles",
+          itemType: Iyzipay.BASKET_ITEM_TYPE.PHYSICAL,
+          price: item.price,
+        }))
+      );
+
+      // Calculate total item price and total amount from all orders
+      const totalItemPrice = basketItems.reduce(
+        (total, item) => total + item.price,
+        0
+      );
+      const totalAmount = orders.reduce(
+        (total, order) => total + order.totalAmount,
+        0
+      );
+
+      // Iyzipay configuration
+      const iyzico = new Iyzipay({
+        apiKey: process.env.IYZICO_KEY,
+        secretKey: process.env.IYZICO_SECRET_KEY,
+        uri: process.env.IYZICO_BASE_URL,
       });
-      res.status(200).send({
-        success: true,
-        client_secret,
+
+      const request = {
+        locale: Iyzipay.LOCALE.TR,
+        conversationId: "123456789",
+        price: totalItemPrice, // Total item price from basketItems
+        paidPrice: totalAmount, // Total amount from orders
+        currency: Iyzipay.CURRENCY.TRY,
+        installment: "1",
+        basketId: "B67832",
+        paymentChannel: Iyzipay.PAYMENT_CHANNEL.WEB,
+        paymentGroup: Iyzipay.PAYMENT_GROUP.PRODUCT,
+        callbackUrl: "http://your-callback-url", // Replace with your callback URL
+        paymentCard: {
+          cardHolderName: cardHolderName,
+          cardNumber: cardNumber,
+          expireMonth: expireMonth,
+          expireYear: expireYear,
+          cvc: cvc,
+        },
+        buyer: {
+          id: user._id.toString(), // Use actual user ID from the request
+          name: user.name, // Use actual user name
+          surname: user.surname, // Optionally add surname
+          gsmNumber: user.phone, // Use actual user phone number
+          email: user.email, // Use actual user email
+          identityNumber: "74300864791", // Optionally add identity number
+          lastLoginDate: formatDate(new Date()), // Optionally add last login date
+          registrationDate: formatDate(user.createdAt), // Use user registration date
+          registrationAddress: user.address, // Use actual address
+          ip: req.ip, // User's IP address
+          city: user.city, // Use actual city
+          country: user.country, // Use actual country
+          zipCode: "", // Optionally add zip code
+        },
+        shippingAddress: {
+          contactName: user.name, // Use actual shipping contact name
+          city: orders[0].shippingInfo.city, // Use city from the first order
+          country: orders[0].shippingInfo.country, // Use country from the first order
+          address: orders[0].shippingInfo.address, // Use address from the first order
+          zipCode: "", // Optionally add shipping zip code
+        },
+        billingAddress: {
+          contactName: user.name, // Use actual billing contact name
+          city: orders[0].shippingInfo.city, // Use city from the first order
+          country: orders[0].shippingInfo.country, // Use country from the first order
+          address: orders[0].shippingInfo.address, // Use address from the first order
+          zipCode: "", // Optionally add billing zip code
+        },
+        basketItems: basketItems,
+      };
+
+      // Create payment
+      iyzico.threedsInitialize.create(request, function (err, result) {
+        if (err) {
+          console.error("Payment error:", err);
+          return res.status(500).send({
+            success: false,
+            message: "Payment processing error",
+            error: err,
+          });
+        }
+
+        if (result.status === "success") {
+          let buff = Buffer.from(result.threeDSHtmlContent, "base64");
+          const decodedString = buff.toString("utf8");
+          return res.status(200).json({ page: decodedString });
+        } else {
+          console.error("Payment error:", result.errorMessage);
+          return res.status(500).send({
+            success: false,
+            message: result.errorMessage,
+          });
+        }
       });
     } catch (error) {
-      console.log(error);
+      console.error("Internal server error:", error);
       res.status(500).send({
         success: false,
-        message: "Error In Get UPDATE Products API",
+        message: "Internal server error",
         error,
       });
     }

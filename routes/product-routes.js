@@ -19,7 +19,7 @@ router.get("/:id", ProductController.getSingleProductController);
 router.post(
   "/create",
   isAuth,
-  isAdmin,
+  
   singleUpload,
   ProductController.createProductController
 );

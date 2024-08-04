@@ -7,6 +7,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "name is required"],
     },
+    surname: {
+      type: String,
+      required: [true, "name is required"],
+    },
     email: {
       type: String,
       required: [true, "email is required"],
@@ -53,7 +57,7 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-//fuynctuions
+
 // hash func
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();

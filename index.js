@@ -3,7 +3,7 @@ import morgan from "morgan";
 import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
-import Stripe from "stripe";
+import Iyzipay from  "iyzipay"
 import helmet from "helmet";
 import mongoSanitize from "express-mongo-sanitize";
 import cloudinary from "cloudinary";
@@ -21,8 +21,7 @@ dotenv.config();
 //database connection
 connectDB();
 
-//stripe configuration
-export const stripe = new Stripe(process.env.STRIPE_API_SECRET);
+
 
 //rest object
 const app = express();
