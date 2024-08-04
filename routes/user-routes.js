@@ -5,9 +5,8 @@ import {
   logoutController,
   passwordResetController,
   registerController,
-  udpatePasswordController,
+  updatePasswordController,
   updateProfileController,
-
 } from "../controller/user-controller.js";
 import { isAuth } from "../middlewares/auth-mid.js";
 import { rateLimit } from "express-rate-limit";
@@ -41,7 +40,7 @@ router.get("/logout", isAuth, logoutController);
 router.put("/profile-update", isAuth, updateProfileController);
 
 // updte password
-router.put("/update-password", isAuth, udpatePasswordController);
+router.put("/update-password", isAuth, updatePasswordController);
 
 // FORGOT PASSWORD
 router.post("/reset-password", passwordResetController);
