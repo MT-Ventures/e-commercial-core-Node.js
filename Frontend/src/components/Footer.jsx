@@ -8,8 +8,8 @@ import { AiOutlineInstagram } from "react-icons/ai";
 const Footer = () => {
   return (
     <>
-      <section className="bg-slate-500">
-        <footer className="container mx-auto grid grid-cols-10 px-5 py-1 gap-y-1 gap-x-3 md:pt-6 pb-6 md:grid-cols-12 lg:grid-cols-10 lg:gap-x-10 ">
+      <section className="bg-slate-500 mt-auto bottom-0">
+        <footer className="container mx-auto grid grid-cols-10 px-5 py-1 gap-y-1 gap-x-3 md:pt-6 pb-6 md:grid-cols-12 lg:grid-cols-10 lg:gap-x-10">
           <div className="col-span-5 md:col-span-4 lg:col-span-2">
             <h3 className="text-black font-bold md:text-lg">Product</h3>
             <ul className="text-white font-medium text-sm mt-2 space-y-1">
@@ -81,11 +81,11 @@ const Footer = () => {
               </li>
             </ul>
           </div>
-          <div className="col-span-10 md:order-first  md:col-span-4  lg:col-span-2">
+          <div className="col-span-10 md:order-first md:col-span-4 lg:col-span-2">
             <img
               src={images.logo}
               alt="logo"
-              className="w-20 h-auto mx-auto md:mx-0 "
+              className="w-20 h-auto mx-auto md:mx-0"
             ></img>
             <p className="text-sm text-dark-light text-center mt-4 md:text-left md:text-base">
               Lorem ipsum dolor sit amet consectetur adipisicing elit.

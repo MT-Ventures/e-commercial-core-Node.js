@@ -1,11 +1,15 @@
 import "./Index.css";
-import MainLayout from "./components/MainLayout";
+import { Routes, Route } from "react-router-dom";
+import HomePage from "./pages/Home/HomePage";
+
 
 function App() {
   return (
     <>
       <div>
-        <MainLayout></MainLayout>
+       <Routes>
+          <Route index path="/" element={<HomePage></HomePage>}></Route>
+        </Routes>
       </div>
     </>
   );
