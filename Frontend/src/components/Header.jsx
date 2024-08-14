@@ -96,11 +96,14 @@ const Header = () => {
               </div>
             ) : (
               <>
-                <button className="mt-5 lg:mt-0 px-5 py-2  font-semibold hover:bg-black hover:text-white transition-all duration-300">
+                <button
+                  onClick={() => navigate("/login")}
+                  className="mt-5 lg:mt-0 px-5 py-2  font-semibold hover:bg-black hover:text-white transition-all duration-300"
+                >
                   Login
                 </button>
                 <button
-                  onClick={() => navigate("/login")}
+                  onClick={() => navigate("/sign-in")}
                   className="mt-5 lg:mt-0 border-2 border-black px-5 py-2 text-black font-semibold hover:bg-black hover:text-white transition-all duration-300"
                 >
                   Sign In

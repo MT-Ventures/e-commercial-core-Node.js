@@ -3,12 +3,22 @@ import userModel from "../models/user-model.js";
 // Register Controller
 export const registerController = async (req, res) => {
   try {
-    const { name, email, password, address, city, country, phone, answer } =
-      req.body;
+    const {
+      name,
+      surname,
+      email,
+      password,
+      address,
+      city,
+      country,
+      phone,
+      answer,
+    } = req.body;
 
     // Validation
     const missingField = [
       name,
+      surname,
       email,
       password,
       address,
@@ -37,6 +47,7 @@ export const registerController = async (req, res) => {
     // Create user
     const user = await userModel.create({
       name,
+      surname,
       email,
       password,
       address,
